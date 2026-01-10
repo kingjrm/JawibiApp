@@ -21,6 +21,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("INSERT INTO menu_items (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$name, $description, $price, $category_id, $image]);
         $success = 'Item added successfully!';
+    } elseif (isset($_POST['edit_item'])) {
+        $id = $_POST['id'];
+        $name = $_POST['name'];
+        $description = $_POST['description'];
+        $price = $_POST['price'];
+        $category_id = $_POST['category_id'];
+        $image = $_POST['image'];
+
+        $stmt = $pdo->prepare("UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ? WHERE id = ?");
+        $stmt->execute([$name, $description, $price, $category_id, $image, $id]);
+        $success = 'Item updated successfully!';
+    } elseif (isset($_POST['delete_item'])) {
+        $id = $_POST['id'];
+        $stmt = $pdo->prepare("DELETE FROM menu_items WHERE id = ?");
+        $stmt->execute([$id]);
+        $success = 'Item deleted successfully!';
     } elseif (isset($_POST['update_order_status'])) {
         $order_id = $_POST['order_id'];
         $status = $_POST['status'];
@@ -59,6 +75,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("INSERT INTO promotions (code, description, discount_type, discount_value, min_order, valid_until) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$code, $description, $discount_type, $discount_value, $min_order, $valid_until]);
         $success = 'Promotion added successfully!';
+    } elseif (isset($_POST['create_pos_order'])) {
+        $customer_name = $_POST['customer_name'];
+        $payment_method = $_POST['payment_method'];
+        $order_items = json_decode($_POST['order_items'], true);
+
+        if (!empty($order_items)) {
+            $total = 0;
+            foreach ($order_items as $item) {
+                $total += $item['price'] * $item['quantity'];
+            }
+
+            // Create order for admin user (id=1)
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, final_amount, status, payment_method) VALUES (1, ?, ?, 'confirmed', ?)"); 
+            $stmt->execute([$total, $total, $payment_method]);
+            $order_id = $pdo->lastInsertId();
+
+            // Add order items
+            foreach ($order_items as $item) {
+                $stmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
+                $stmt->execute([$order_id, $item['id'], $item['quantity'], $item['price'], $item['price'] * $item['quantity']]);
+            }
+
+            $success = 'POS order created successfully!';
+        }
     }
 }
 
@@ -66,10 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 if ($tab == 'dashboard') {
     $total_orders = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
     $total_users = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-    $total_revenue = $pdo->query("SELECT SUM(final_total) FROM orders WHERE status != 'cancelled'")->fetchColumn();
+    $total_revenue = $pdo->query("SELECT SUM(final_amount) FROM orders WHERE status != 'cancelled'")->fetchColumn();
     $pending_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn();
+    $top_items = $pdo->query("SELECT mi.name, SUM(oi.quantity) as total_sold FROM order_items oi JOIN menu_items mi ON oi.item_id = mi.id GROUP BY oi.item_id ORDER BY total_sold DESC LIMIT 5")->fetchAll();
+    $recent_orders = $pdo->query("SELECT orders.id, orders.final_amount, orders.status, orders.created_at, CONCAT(users.first_name, ' ', users.last_name) as user_name FROM orders JOIN users ON orders.user_id = users.id ORDER BY orders.created_at DESC LIMIT 10")->fetchAll();
 } elseif ($tab == 'orders') {
-    $stmt = $pdo->query("SELECT orders.*, users.name as user_name FROM orders JOIN users ON orders.user_id = users.id ORDER BY orders.created_at DESC");
+    $stmt = $pdo->query("SELECT orders.id, orders.user_id, orders.total_amount, orders.final_amount, orders.status, orders.payment_method, orders.created_at, CONCAT(users.first_name, ' ', users.last_name) as user_name FROM orders JOIN users ON orders.user_id = users.id ORDER BY orders.created_at DESC");
     $orders = $stmt->fetchAll();
 } elseif ($tab == 'menu') {
     $stmt = $pdo->query("SELECT menu_items.*, categories.name as category_name FROM menu_items LEFT JOIN categories ON menu_items.category_id = categories.id ORDER BY menu_items.name");
@@ -103,6 +145,9 @@ if ($tab == 'dashboard') {
                     </a>
                     <a href="?tab=promotions" class="block px-4 py-2 rounded <?php echo $tab == 'promotions' ? 'bg-red-500 text-white' : 'text-gray-700 hover:bg-gray-100'; ?>">
                         <i class="fas fa-tags mr-2"></i>Promotions
+                    </a>
+                    <a href="?tab=pos" class="block px-4 py-2 rounded <?php echo $tab == 'pos' ? 'bg-red-500 text-white' : 'text-gray-700 hover:bg-gray-100'; ?>">
+                        <i class="fas fa-cash-register mr-2"></i>POS
                     </a>
                 </nav>
             </div>
@@ -166,9 +211,6 @@ if ($tab == 'dashboard') {
 
                 <div class="bg-white shadow-lg rounded-lg p-6">
                     <h2 class="text-xl font-bold mb-4">Recent Orders</h2>
-                    <?php
-                    $recent_orders = $pdo->query("SELECT orders.*, users.name as user_name FROM orders JOIN users ON orders.user_id = users.id ORDER BY orders.created_at DESC LIMIT 5")->fetchAll();
-                    ?>
                     <div class="space-y-4">
                         <?php foreach ($recent_orders as $order): ?>
                             <div class="flex justify-between items-center border-b pb-2">
@@ -177,7 +219,7 @@ if ($tab == 'dashboard') {
                                     <p class="text-sm text-gray-600"><?php echo $order['user_name']; ?> • <?php echo date('M d, H:i', strtotime($order['created_at'])); ?></p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-bold">₱<?php echo $order['final_total']; ?></p>
+                                    <p class="font-bold">₱<?php echo $order['final_amount']; ?></p>
                                     <span class="px-2 py-1 rounded text-xs <?php
                                         $status_colors = [
                                             'pending' => 'bg-yellow-200 text-yellow-800',
@@ -192,6 +234,18 @@ if ($tab == 'dashboard') {
                                         <?php echo ucfirst($order['status']); ?>
                                     </span>
                                 </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div class="bg-white shadow-lg rounded-lg p-6">
+                    <h2 class="text-xl font-bold mb-4">Top Selling Items</h2>
+                    <div class="space-y-4">
+                        <?php foreach ($top_items as $item): ?>
+                            <div class="flex justify-between items-center">
+                                <span><?php echo $item['name']; ?></span>
+                                <span class="font-bold"><?php echo $item['total_sold']; ?> sold</span>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -220,7 +274,7 @@ if ($tab == 'dashboard') {
                                         <tr class="border-t">
                                             <td class="px-4 py-2">#<?php echo $order['id']; ?></td>
                                             <td class="px-4 py-2"><?php echo $order['user_name']; ?></td>
-                                            <td class="px-4 py-2">₱<?php echo $order['final_total']; ?></td>
+                                            <td class="px-4 py-2">₱<?php echo $order['final_amount']; ?></td>
                                             <td class="px-4 py-2">
                                                 <form method="POST" class="inline">
                                                     <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
@@ -269,8 +323,12 @@ if ($tab == 'dashboard') {
                                                 <?php echo $item['is_available'] ? 'Available' : 'Unavailable'; ?>
                                             </span>
                                             <div class="flex space-x-2">
-                                                <button class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
-                                                <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                                <button onclick="openEditModal(<?php echo $item['id']; ?>, '<?php echo addslashes($item['name']); ?>', '<?php echo addslashes($item['description']); ?>', <?php echo $item['price']; ?>, <?php echo $item['category_id']; ?>, '<?php echo $item['image']; ?>')" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
+                                                <form method="POST" class="inline" onsubmit="return confirm('Delete this item?')">
+                                                    <input type="hidden" name="id" value="<?php echo $item['id']; ?>">
+                                                    <input type="hidden" name="delete_item" value="1">
+                                                    <button type="submit" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -394,6 +452,46 @@ if ($tab == 'dashboard') {
     </div>
 </div>
 
+<!-- Edit Item Modal -->
+<div id="edit-item-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Edit Menu Item</h2>
+            <button onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="POST" id="edit-item-form">
+            <input type="hidden" name="id" id="edit-id">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" name="name" id="edit-name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" id="edit-description" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Price</label>
+                <input type="number" name="price" id="edit-price" step="0.01" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Category</label>
+                <select name="category_id" id="edit-category" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                    <?php foreach ($categories as $cat): ?>
+                        <option value="<?php echo $cat['id']; ?>"><?php echo $cat['name']; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Image</label>
+                <input type="text" name="image" id="edit-image" placeholder="image.jpg" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+            </div>
+            <button type="submit" name="edit_item" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-700">Update Item</button>
+        </form>
+    </div>
+</div>
+
 <!-- Add Promo Modal -->
 <div id="add-promo-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
@@ -435,5 +533,17 @@ if ($tab == 'dashboard') {
         </form>
     </div>
 </div>
+
+<script>
+function openEditModal(id, name, description, price, category_id, image) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-description').value = description;
+    document.getElementById('edit-price').value = price;
+    document.getElementById('edit-category').value = category_id;
+    document.getElementById('edit-image').value = image;
+    document.getElementById('edit-item-modal').classList.remove('hidden');
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>

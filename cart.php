@@ -72,13 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif (isset($_POST['checkout'])) {
         // Store checkout data in session
         $_SESSION['checkout'] = [
-            'delivery_type' => $_POST['delivery_type'],
-            'payment_method' => $_POST['payment_method'],
-            'address_id' => $_POST['address_id'] ?? null,
-            'notes' => $_POST['notes'],
+            'payment_method' => 'cash',
             'promo_code' => $promo_code,
             'discount' => $discount,
-            'final_total' => $total
+            'final_amount' => $total
         ];
         header('Location: checkout.php');
         exit;
@@ -162,45 +159,7 @@ $addresses = $stmt->fetchAll();
                     </div>
 
                     <form method="POST" id="checkout-form">
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Type</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="radio" name="delivery_type" value="delivery" checked class="mr-2">
-                                    Delivery
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="delivery_type" value="pickup" class="mr-2">
-                                    Pickup
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="mb-4" id="address-section">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Address</label>
-                            <select name="address_id" class="w-full px-3 py-2 border rounded">
-                                <?php foreach ($addresses as $addr): ?>
-                                    <option value="<?php echo $addr['id']; ?>"><?php echo $addr['address']; ?> (<?php echo $addr['address_type']; ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
-                            <a href="profile.php?tab=addresses" class="text-sm text-red-500">Manage addresses</a>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                            <select name="payment_method" class="w-full px-3 py-2 border rounded">
-                                <option value="cash">Cash on Delivery</option>
-                                <option value="card">Credit/Debit Card</option>
-                                <option value="online">Online Payment</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Special Instructions</label>
-                            <textarea name="notes" rows="3" class="w-full px-3 py-2 border rounded" placeholder="Any special requests..."></textarea>
-                        </div>
-
-                        <button type="submit" name="checkout" class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-700 font-semibold">Proceed to Checkout</button>
+                        <button type="submit" name="checkout" class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-700 font-semibold text-lg">Checkout</button>
                     </form>
                 </div>
             </div>

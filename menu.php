@@ -121,11 +121,6 @@ $menu_items = $stmt->fetchAll();
         <div class="lg:w-3/4">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-3xl font-bold">Our Menu</h1>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="favorites.php" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-700">
-                        <i class="fas fa-heart mr-2"></i>My Favorites
-                    </a>
-                <?php endif; ?>
             </div>
 
             <?php if (isset($success)): ?>

@@ -30,12 +30,16 @@ require_once 'config/db.php';
                 </div>
                 <nav class="space-x-6">
                     <a href="index.php" class="text-red-600 font-semibold hover:text-red-800 transition">Home</a>
-                    <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
-                    <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php if (isset($_SESSION['user_id']) && $_SESSION['user_name'] == 'admin'): ?>
+                        <a href="admin.php" class="text-red-600 font-semibold hover:text-red-800 transition">Admin Panel</a>
+                        <a href="logout.php" class="text-red-600 font-semibold hover:text-red-800 transition">Logout</a>
+                    <?php elseif (isset($_SESSION['user_id'])): ?>
+                        <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
                         <a href="cart.php" class="text-red-600 font-semibold hover:text-red-800 transition">Cart</a>
                         <a href="profile.php" class="text-red-600 font-semibold hover:text-red-800 transition">Profile</a>
                         <a href="logout.php" class="text-red-600 font-semibold hover:text-red-800 transition">Logout</a>
                     <?php else: ?>
+                        <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
                         <a href="login.php" class="text-red-600 font-semibold hover:text-red-800 transition">Login</a>
                         <a href="register.php" class="text-red-600 font-semibold hover:text-red-800 transition">Register</a>
                     <?php endif; ?>

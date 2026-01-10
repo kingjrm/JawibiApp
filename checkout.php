@@ -34,26 +34,16 @@ if (!empty($cart)) {
     }
 }
 
-// Get address if delivery
-$address = null;
-if ($checkout['delivery_type'] == 'delivery' && $checkout['address_id']) {
-    $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE id = ? AND user_id = ?");
-    $stmt->execute([$checkout['address_id'], $_SESSION['user_id']]);
-    $address = $stmt->fetch();
-}
+// No address needed for POS
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
     // Process order
-    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total, discount, final_total, status, delivery_type, address_id, payment_method, notes) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, discount_amount, final_amount, status) VALUES (?, ?, ?, ?, 'pending')");
     $stmt->execute([
         $_SESSION['user_id'],
         $total,
         $checkout['discount'],
-        $checkout['final_total'],
-        $checkout['delivery_type'],
-        $checkout['address_id'],
-        $checkout['payment_method'],
-        $checkout['notes']
+        $checkout['final_total']
     ]);
     $order_id = $pdo->lastInsertId();
 
@@ -63,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
     }
 
     // Award loyalty points
-    $points_earned = floor($checkout['final_total'] / 10); // 1 point per ₱10
+    $points_earned = floor($checkout['final_amount'] / 10); // 1 point per ₱10
     $stmt = $pdo->prepare("UPDATE users SET loyalty_points = loyalty_points + ? WHERE id = ?");
     $stmt->execute([$points_earned, $_SESSION['user_id']]);
 
@@ -99,34 +89,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
                 <?php endforeach; ?>
                 <div class="flex justify-between items-center text-lg font-bold">
                     <span>Total:</span>
-                    <span>₱<?php echo $checkout['final_total']; ?></span>
+                    <span>₱<?php echo $checkout['final_amount']; ?></span>
                 </div>
             </div>
         </div>
 
         <div>
-            <h2 class="text-xl font-semibold mb-4">Delivery Details</h2>
+            <h2 class="text-xl font-semibold mb-4">Order Details</h2>
             <div class="bg-white shadow-lg rounded-lg p-6 space-y-4">
                 <div>
-                    <span class="font-semibold">Delivery Type:</span>
-                    <span class="capitalize"><?php echo $checkout['delivery_type']; ?></span>
-                </div>
-                <?php if ($checkout['delivery_type'] == 'delivery' && $address): ?>
-                    <div>
-                        <span class="font-semibold">Address:</span>
-                        <p><?php echo $address['address']; ?> (<?php echo $address['address_type']; ?>)</p>
-                    </div>
-                <?php endif; ?>
-                <div>
                     <span class="font-semibold">Payment Method:</span>
-                    <span><?php echo ucfirst($checkout['payment_method']); ?></span>
+                    <span>Cash</span>
                 </div>
-                <?php if (!empty($checkout['notes'])): ?>
-                    <div>
-                        <span class="font-semibold">Special Instructions:</span>
-                        <p><?php echo htmlspecialchars($checkout['notes']); ?></p>
-                    </div>
-                <?php endif; ?>
                 <?php if (!empty($checkout['promo_code'])): ?>
                     <div>
                         <span class="font-semibold">Promo Code:</span>
