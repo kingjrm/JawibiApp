@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; }
+        body { font-family: 'Poppins', sans-serif; font-size: 14px; }
         .hero-bg { background-image: url('assets/chickenjoy.jpg'); }
         .fade-in { animation: fadeIn 0.8s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -24,21 +24,28 @@
                     <span class="text-xl font-bold text-red-600">Jollibee</span>
                 </div>
                 <nav class="space-x-6">
-                    <a href="/" class="text-red-600 font-semibold hover:text-red-800 transition">Home</a>
-                    <a href="#menu" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
+                    <a href="index.php" class="text-red-600 font-semibold hover:text-red-800 transition">Home</a>
+                    <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
                     <a href="#deals" class="text-red-600 font-semibold hover:text-red-800 transition">Deals</a>
                     <a href="#stores" class="text-red-600 font-semibold hover:text-red-800 transition">Stores</a>
+                    <a href="login.php" class="text-red-600 font-semibold hover:text-red-800 transition">Login</a>
+                    <a href="register.php" class="text-red-600 font-semibold hover:text-red-800 transition">Register</a>
                 </nav>
             </div>
         </div>
     </header>
+
+    <!-- Announcement Banner -->
+    <div class="bg-red-600 text-white text-center py-2">
+        <p class="text-lg font-semibold">🎉 New UI Updates! Enhanced Experience Awaits 🎉</p>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero-bg bg-cover bg-center h-screen flex items-center justify-center text-center text-white relative">
         <div class="absolute inset-0 bg-black bg-opacity-40"></div>
         <div class="relative z-10 fade-in">
             <h1 class="text-5xl md:text-7xl font-bold mb-4">Love at First Bite</h1>
-            <p class="text-xl md:text-2xl mb-8">Indulge in Jollibee favorites — Chickenjoy, Jolly Spaghetti, and more!</p>
+            <p id="typing-text" class="text-xl md:text-2xl mb-8">Indulge in Jollibee favorites — Chickenjoy, Jolly Spaghetti, and more!</p>
             <a href="#menu" class="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition">Explore Menu</a>
         </div>
     </section>
@@ -74,7 +81,7 @@
                     <img src="https://cdn-icons-png.flaticon.com/512/877/877951.png" alt="Menu" class="w-12 mx-auto mb-4">
                     <h2 class="text-2xl font-bold mb-4">Explore Our Menu</h2>
                     <p class="text-gray-600 mb-6">From Chickenjoy to Jolly Spaghetti—see what's in store.</p>
-                    <a href="#menu" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition">See Menu</a>
+                    <a href="menu.php" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition">See Menu</a>
                 </div>
                 <div class="bg-white shadow-lg rounded-lg p-8 text-center max-w-sm" id="stores">
                     <img src="https://cdn-icons-png.flaticon.com/512/535/535239.png" alt="Store" class="w-12 mx-auto mb-4">
@@ -96,6 +103,38 @@
     <script>
         // Simple JS for animations or interactions if needed
         // For now, just the CSS animations
+
+        // Typing effect for the hero text
+        const text = "Indulge in Jollibee favorites — Chickenjoy, Jolly Spaghetti, and more!";
+        const typingText = document.getElementById('typing-text');
+        let index = 0;
+
+        function typeWriter() {
+            if (index < text.length) {
+                typingText.innerHTML += text.charAt(index);
+                index++;
+                setTimeout(typeWriter, 50); // Adjust speed here
+            }
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Start typing when page loads
+        window.onload = function() {
+            typingText.innerHTML = ""; // Clear initial text
+            typeWriter();
+        };
     </script>
 </body>
 </html>
