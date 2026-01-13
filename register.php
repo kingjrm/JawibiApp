@@ -249,9 +249,9 @@ $show_otp_form = isset($_SESSION['reg_data']);
             </p>
         </div>
     </div>  <!-- close flex-grow -->
-
-    <?php include 'includes/footer.php'; ?>
 </div>  <!-- close min-h-screen -->
+
+<?php include 'includes/footer.php'; ?>
 
 <!-- Terms of Service Modal -->
 <div id="terms-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
