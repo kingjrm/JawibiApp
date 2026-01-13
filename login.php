@@ -2,6 +2,11 @@
 $title = 'Login - Jollibee';
 include 'includes/header.php';
 
+$message = '';
+if (isset($_GET['message'])) {
+    $message = $_GET['message'];
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
@@ -38,6 +43,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         <?php endif; ?>
 
+        <?php if (isset($message)): ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100">
             <form method="POST" class="space-y-6">
                 <div>
@@ -67,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
 
                     <div class="text-sm">
-                        <a href="#" class="font-medium text-red-600 hover:text-red-500 transition duration-200">
+                        <a href="forgot_password.php" class="font-medium text-red-600 hover:text-red-500 transition duration-200">
                             Forgot your password?
                         </a>
                     </div>
@@ -107,12 +121,108 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="text-center">
             <p class="text-xs text-gray-500">
                 By signing in, you agree to our
-                <a href="#" class="text-red-600 hover:text-red-500">Terms of Service</a>
+                <a href="#" onclick="openModal('terms-modal')" class="text-red-600 hover:text-red-500">Terms of Service</a>
                 and
-                <a href="#" class="text-red-600 hover:text-red-500">Privacy Policy</a>
+                <a href="#" onclick="openModal('privacy-modal')" class="text-red-600 hover:text-red-500">Privacy Policy</a>
             </p>
         </div>
     </div>
 </div>
+
+<!-- Terms of Service Modal -->
+<div id="terms-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-900">Terms of Service</h2>
+                <button onclick="closeModal('terms-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div class="text-sm text-gray-700 space-y-3">
+                <h3 class="font-semibold text-base">1. Acceptance of Terms</h3>
+                <p>By accessing and using Jollibee's online ordering system, you accept and agree to be bound by the terms and provision of this agreement.</p>
+
+                <h3 class="font-semibold text-base">2. Use License</h3>
+                <p>Permission is granted to temporarily access the materials on Jollibee's website for personal, non-commercial transitory viewing only.</p>
+
+                <h3 class="font-semibold text-base">3. Order Terms</h3>
+                <p>All orders placed through our system are subject to availability and acceptance. We reserve the right to refuse or cancel any order.</p>
+
+                <h3 class="font-semibold text-base">4. Payment Terms</h3>
+                <p>Payment must be made at the time of ordering. All prices are subject to change without notice.</p>
+
+                <h3 class="font-semibold text-base">5. Delivery Terms</h3>
+                <p>Delivery times are estimates only. We are not responsible for delays caused by circumstances beyond our control.</p>
+
+                <h3 class="font-semibold text-base">6. Refund Policy</h3>
+                <p>Refunds will be processed within 5-7 business days for eligible orders. Refunds are not available for consumed items.</p>
+
+                <h3 class="font-semibold text-base">7. User Account</h3>
+                <p>You are responsible for maintaining the confidentiality of your account and password.</p>
+
+                <h3 class="font-semibold text-base">8. Contact</h3>
+                <p>For questions: legal@jollibee.com | 1-800-JOLLIBEE</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div id="privacy-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-900">Privacy Policy</h2>
+                <button onclick="closeModal('privacy-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div class="text-sm text-gray-700 space-y-3">
+                <h3 class="font-semibold text-base">1. Information We Collect</h3>
+                <p>We collect information you provide directly to us, such as when you create an account or place an order.</p>
+
+                <h3 class="font-semibold text-base">2. Types of Information</h3>
+                <p><strong>Personal:</strong> Name, email, phone, address, payment info<br>
+                <strong>Automatic:</strong> IP address, browser info, usage data</p>
+
+                <h3 class="font-semibold text-base">3. How We Use Information</h3>
+                <p>To process orders, provide service, send updates, improve services, and maintain security.</p>
+
+                <h3 class="font-semibold text-base">4. Information Sharing</h3>
+                <p>We do not sell your information. We may share with service providers, payment processors, and delivery partners.</p>
+
+                <h3 class="font-semibold text-base">5. Data Security</h3>
+                <p>We implement security measures to protect your information against unauthorized access.</p>
+
+                <h3 class="font-semibold text-base">6. Your Rights</h3>
+                <p>You have the right to access, correct, or delete your personal information.</p>
+
+                <h3 class="font-semibold text-base">7. Contact</h3>
+                <p>For privacy questions: privacy@jollibee.com | 1-800-JOLLIBEE</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('bg-opacity-50')) {
+        event.target.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>

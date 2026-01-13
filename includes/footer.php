@@ -1,5 +1,5 @@
     <!-- Footer -->
-    <footer class="bg-gradient-to-r from-red-600 to-red-700 text-white mt-16">
+    <footer class="bg-gradient-to-r from-red-600 to-red-700 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <!-- Company Info -->
@@ -46,8 +46,8 @@
                     <ul class="space-y-2">
                         <li><a href="#" class="text-red-100 hover:text-white transition duration-200">Contact Us</a></li>
                         <li><a href="#" class="text-red-100 hover:text-white transition duration-200">FAQ</a></li>
-                        <li><a href="#" class="text-red-100 hover:text-white transition duration-200">Privacy Policy</a></li>
-                        <li><a href="#" class="text-red-100 hover:text-white transition duration-200">Terms of Service</a></li>
+                        <li><a href="privacy.php" class="text-red-100 hover:text-white transition duration-200">Privacy Policy</a></li>
+                        <li><a href="terms.php" class="text-red-100 hover:text-white transition duration-200">Terms of Service</a></li>
                         <li><a href="#" class="text-red-100 hover:text-white transition duration-200">Feedback</a></li>
                     </ul>
                 </div>

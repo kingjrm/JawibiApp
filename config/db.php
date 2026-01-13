@@ -1,6 +1,11 @@
 <?php
 // Load environment variables
-$env = parse_ini_file('.env');
+$env_file = __DIR__ . '/../.env';
+$env = parse_ini_file($env_file);
+
+if (!$env) {
+    die("Could not load .env file from: $env_file");
+}
 
 // Database configuration
 $host = $env['DB_HOST'];
