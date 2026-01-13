@@ -2,7 +2,18 @@
 $title = 'Admin Panel - Jollibee';
 include 'includes/header.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['user_name'] != 'admin') {
+if (!isset($_SESSION['user_id'])) {
+    header('Location: index.php');
+    exit;
+}
+
+// Check if user is admin
+$user_id = $_SESSION['user_id'];
+$stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch();
+
+if (!$user || $user['role'] !== 'admin') {
     header('Location: index.php');
     exit;
 }
@@ -108,7 +119,7 @@ if ($tab == 'dashboard') {
     $total_users = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     $total_revenue = $pdo->query("SELECT SUM(final_amount) FROM orders WHERE status != 'cancelled'")->fetchColumn();
     $pending_orders = $pdo->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn();
-    $top_items = $pdo->query("SELECT mi.name, SUM(oi.quantity) as total_sold FROM order_items oi JOIN menu_items mi ON oi.item_id = mi.id GROUP BY oi.item_id ORDER BY total_sold DESC LIMIT 5")->fetchAll();
+    $top_items = $pdo->query("SELECT mi.name, SUM(oi.quantity) as total_sold FROM order_items oi JOIN menu_items mi ON oi.menu_item_id = mi.id GROUP BY oi.menu_item_id ORDER BY total_sold DESC LIMIT 5")->fetchAll();
     $recent_orders = $pdo->query("SELECT orders.id, orders.final_amount, orders.status, orders.created_at, CONCAT(users.first_name, ' ', users.last_name) as user_name FROM orders JOIN users ON orders.user_id = users.id ORDER BY orders.created_at DESC LIMIT 10")->fetchAll();
 } elseif ($tab == 'orders') {
     $stmt = $pdo->query("SELECT orders.id, orders.user_id, orders.total_amount, orders.final_amount, orders.status, orders.payment_method, orders.created_at, CONCAT(users.first_name, ' ', users.last_name) as user_name FROM orders JOIN users ON orders.user_id = users.id ORDER BY orders.created_at DESC");
@@ -319,8 +330,8 @@ if ($tab == 'dashboard') {
                                         <p class="text-sm text-gray-600 mb-2"><?php echo $item['category_name']; ?></p>
                                         <p class="text-lg font-bold text-red-600">₱<?php echo $item['price']; ?></p>
                                         <div class="mt-2 flex justify-between items-center">
-                                            <span class="text-sm <?php echo $item['is_available'] ? 'text-green-600' : 'text-red-600'; ?>">
-                                                <?php echo $item['is_available'] ? 'Available' : 'Unavailable'; ?>
+                                            <span class="text-sm <?php echo $item['available'] ? 'text-green-600' : 'text-red-600'; ?>">
+                                                <?php echo $item['available'] ? 'Available' : 'Unavailable'; ?>
                                             </span>
                                             <div class="flex space-x-2">
                                                 <button onclick="openEditModal(<?php echo $item['id']; ?>, '<?php echo addslashes($item['name']); ?>', '<?php echo addslashes($item['description']); ?>', <?php echo $item['price']; ?>, <?php echo $item['category_id']; ?>, '<?php echo $item['image']; ?>')" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
@@ -359,7 +370,7 @@ if ($tab == 'dashboard') {
                                     <?php foreach ($users as $user): ?>
                                         <tr class="border-t">
                                             <td class="px-4 py-2"><?php echo $user['id']; ?></td>
-                                            <td class="px-4 py-2"><?php echo $user['name']; ?></td>
+                                            <td class="px-4 py-2"><?php echo $user['first_name'] . ' ' . $user['last_name']; ?></td>
                                             <td class="px-4 py-2"><?php echo $user['email']; ?></td>
                                             <td class="px-4 py-2"><?php echo $user['loyalty_points']; ?></td>
                                             <td class="px-4 py-2"><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>

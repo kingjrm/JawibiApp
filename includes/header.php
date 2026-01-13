@@ -30,13 +30,20 @@ require_once 'config/db.php';
                 </div>
                 <nav class="space-x-6">
                     <a href="index.php" class="text-red-600 font-semibold hover:text-red-800 transition">Home</a>
-                    <?php if (isset($_SESSION['user_id']) && $_SESSION['user_name'] == 'admin'): ?>
-                        <a href="admin.php" class="text-red-600 font-semibold hover:text-red-800 transition">Admin Panel</a>
-                        <a href="logout.php" class="text-red-600 font-semibold hover:text-red-800 transition">Logout</a>
-                    <?php elseif (isset($_SESSION['user_id'])): ?>
-                        <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
-                        <a href="cart.php" class="text-red-600 font-semibold hover:text-red-800 transition">Cart</a>
-                        <a href="profile.php" class="text-red-600 font-semibold hover:text-red-800 transition">Profile</a>
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <?php
+                        // Check if user is admin
+                        $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+                        $stmt->execute([$_SESSION['user_id']]);
+                        $user_role = $stmt->fetch()['role'] ?? '';
+                        ?>
+                        <?php if ($user_role === 'admin'): ?>
+                            <a href="admin.php" class="text-red-600 font-semibold hover:text-red-800 transition">Admin Panel</a>
+                        <?php else: ?>
+                            <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
+                            <a href="cart.php" class="text-red-600 font-semibold hover:text-red-800 transition">Cart</a>
+                            <a href="profile.php" class="text-red-600 font-semibold hover:text-red-800 transition">Profile</a>
+                        <?php endif; ?>
                         <a href="logout.php" class="text-red-600 font-semibold hover:text-red-800 transition">Logout</a>
                     <?php else: ?>
                         <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
