@@ -406,8 +406,8 @@ if ($tab == 'dashboard') {
                                                 <p class="text-sm text-gray-500">Valid until: <?php echo date('M d, Y', strtotime($promo['valid_until'])); ?></p>
                                             </div>
                                             <div class="flex space-x-2">
-                                                <span class="px-2 py-1 rounded text-sm <?php echo $promo['is_active'] ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'; ?>">
-                                                    <?php echo $promo['is_active'] ? 'Active' : 'Inactive'; ?>
+                                                <span class="px-2 py-1 rounded text-sm <?php echo $promo['active'] ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'; ?>">
+                                                    <?php echo $promo['active'] ? 'Active' : 'Inactive'; ?>
                                                 </span>
                                                 <button class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
                                                 <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
