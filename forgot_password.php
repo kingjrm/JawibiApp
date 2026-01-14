@@ -74,11 +74,6 @@ $show_reset_form = isset($_SESSION['reset_data']);
                         <i class="fas fa-key text-4xl text-red-500 mb-4"></i>
                         <h3 class="text-lg font-semibold text-gray-900">Enter Reset Code</h3>
                         <p class="text-sm text-gray-600">We've sent a 6-digit code to <?php echo htmlspecialchars($_SESSION['reset_data']['email']); ?></p>
-                        <?php if (isset($_SESSION['reset_data']['otp'])): ?>
-                            <p class="text-xs text-yellow-600 mt-2 bg-yellow-50 p-2 rounded">
-                                <strong>Testing Mode:</strong> OTP Code: <?php echo $_SESSION['reset_data']['otp']; ?>
-                            </p>
-                        <?php endif; ?>
                     </div>
 
                     <div>

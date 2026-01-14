@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (sendOTPEmail($email, $otp, 'registration')) {
                 $message = 'OTP sent to your email. Please check your inbox and enter the code below.';
             } else {
-                $message = 'OTP generated (check testing mode below). Please enter the code.';
+                $message = 'There was an issue sending the email. Please try again or contact support.';
             }
         }
     } elseif (isset($_POST['resend_otp'])) {
