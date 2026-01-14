@@ -2,11 +2,6 @@
 $title = 'Login - Jollibee';
 include 'includes/header.php';
 
-$message = '';
-if (isset($_GET['message'])) {
-    $message = $_GET['message'];
-}
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
@@ -39,15 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="flex items-center">
                     <i class="fas fa-exclamation-triangle mr-2"></i>
                     <?php echo $error; ?>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <?php if (isset($message)): ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    <?php echo htmlspecialchars($message); ?>
                 </div>
             </div>
         <?php endif; ?>

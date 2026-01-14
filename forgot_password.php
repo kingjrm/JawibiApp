@@ -1,10 +1,7 @@
 <?php
 $title = 'Forgot Password - Jollibee';
 include 'includes/header.php';
-include 'includes/email.php';
-
-$message = '';
-$error = '';
+include 'includes/email_new.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['send_reset_otp']) || isset($_POST['resend_reset_otp'])) {
@@ -26,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     'otp' => $otp,
                     'timestamp' => time()
                 ];
-                $message = 'Password reset OTP sent to your email. Please check your inbox and enter the code below.';
             } else {
                 $error = 'Failed to send OTP. Please try again.';
             }
@@ -59,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Check if we should show reset form
-$show_reset_form = isset($_SESSION['reset_data']) && !isset($_POST['send_reset_otp']);
+$show_reset_form = isset($_SESSION['reset_data']);
 ?>
 
 <div class="min-h-screen bg-gradient-to-br from-red-50 to-yellow-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -69,24 +65,6 @@ $show_reset_form = isset($_SESSION['reset_data']) && !isset($_POST['send_reset_o
             <h2 class="text-3xl font-extrabold text-gray-900">Reset Password</h2>
             <p class="mt-2 text-sm text-gray-600">Enter your email to receive a password reset code</p>
         </div>
-
-        <?php if (isset($error)): ?>
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    <?php echo $error; ?>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <?php if (isset($message)): ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    <?php echo $message; ?>
-                </div>
-            </div>
-        <?php endif; ?>
 
         <div class="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100">
             <?php if ($show_reset_form): ?>
@@ -132,9 +110,9 @@ $show_reset_form = isset($_SESSION['reset_data']) && !isset($_POST['send_reset_o
                     </div>
 
                     <div class="text-center">
-                        <button type="button" onclick="resendResetOTP()"
+                        <button type="button" onclick="resendResetOTP(event)"
                                 class="text-red-600 hover:text-red-500 text-sm font-medium">
-                            Didn't receive the code? Resend
+                            <i class="fas fa-refresh mr-1"></i>Didn't receive the code? Resend
                         </button>
                     </div>
                 </form>
@@ -173,6 +151,15 @@ $show_reset_form = isset($_SESSION['reset_data']) && !isset($_POST['send_reset_o
 
 <script>
 function resendResetOTP() {
+    console.log('Resend button clicked');
+
+    // Show loading state
+    const button = event.target.closest('button');
+    if (button) {
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Resending...';
+        button.disabled = true;
+    }
+
     // Create a form to resend reset OTP
     const form = document.createElement('form');
     form.method = 'POST';
@@ -184,18 +171,17 @@ function resendResetOTP() {
     input.value = '1';
     form.appendChild(input);
 
-    // Copy current email
-    const email = document.getElementById('email').value;
-    if (email) {
-        const emailInput = document.createElement('input');
-        emailInput.type = 'hidden';
-        emailInput.name = 'email';
-        emailInput.value = email;
-        form.appendChild(emailInput);
+    // Use email from session data (stored when OTP was first sent)
+    <?php if (isset($_SESSION['reset_data']['email'])): ?>
+    const emailInput = document.createElement('input');
+    emailInput.type = 'hidden';
+    emailInput.name = 'email';
+    emailInput.value = '<?php echo htmlspecialchars($_SESSION['reset_data']['email']); ?>';
+    form.appendChild(emailInput);
+    <?php endif; ?>
 
-        document.body.appendChild(form);
-        form.submit();
-    }
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 
