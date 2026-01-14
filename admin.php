@@ -27,22 +27,75 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $description = $_POST['description'];
         $price = $_POST['price'];
         $category_id = $_POST['category_id'];
-        $image = $_POST['image'];
 
-        $stmt = $pdo->prepare("INSERT INTO menu_items (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$name, $description, $price, $category_id, $image]);
-        $success = 'Item added successfully!';
+        // Handle image upload
+        $image_path = '';
+        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+            $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+
+            if (in_array($_FILES['image']['type'], $allowed_types) && $_FILES['image']['size'] <= $max_size) {
+                $upload_dir = 'assets/';
+                $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $new_filename = uniqid('item_') . '.' . $file_extension;
+                $upload_path = $upload_dir . $new_filename;
+
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
+                    $image_path = $new_filename;
+                } else {
+                    $error = 'Failed to upload image.';
+                }
+            } else {
+                $error = 'Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.';
+            }
+        } else {
+            $error = 'Please select an image to upload.';
+        }
+
+        if (empty($error) && !empty($image_path)) {
+            $stmt = $pdo->prepare("INSERT INTO menu_items (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $description, $price, $category_id, $image_path]);
+            $success = 'Item added successfully!';
+        }
     } elseif (isset($_POST['edit_item'])) {
         $id = $_POST['id'];
         $name = $_POST['name'];
         $description = $_POST['description'];
         $price = $_POST['price'];
         $category_id = $_POST['category_id'];
-        $image = $_POST['image'];
 
-        $stmt = $pdo->prepare("UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ? WHERE id = ?");
-        $stmt->execute([$name, $description, $price, $category_id, $image, $id]);
-        $success = 'Item updated successfully!';
+        // Handle image upload (optional for editing)
+        $image_path = $_POST['current_image']; // Keep existing image by default
+
+        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+            $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+
+            if (in_array($_FILES['image']['type'], $allowed_types) && $_FILES['image']['size'] <= $max_size) {
+                $upload_dir = 'assets/';
+                $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $new_filename = uniqid('item_') . '.' . $file_extension;
+                $upload_path = $upload_dir . $new_filename;
+
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
+                    $image_path = $new_filename;
+                    // Optionally delete old image file
+                    if (!empty($_POST['current_image']) && file_exists($upload_dir . $_POST['current_image'])) {
+                        unlink($upload_dir . $_POST['current_image']);
+                    }
+                } else {
+                    $error = 'Failed to upload image.';
+                }
+            } else {
+                $error = 'Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.';
+            }
+        }
+
+        if (empty($error)) {
+            $stmt = $pdo->prepare("UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ? WHERE id = ?");
+            $stmt->execute([$name, $description, $price, $category_id, $image_path, $id]);
+            $success = 'Item updated successfully!';
+        }
     } elseif (isset($_POST['delete_item'])) {
         $id = $_POST['id'];
         $stmt = $pdo->prepare("DELETE FROM menu_items WHERE id = ?");
@@ -433,7 +486,7 @@ if ($tab == 'dashboard') {
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Name</label>
                 <input type="text" name="name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
@@ -456,7 +509,8 @@ if ($tab == 'dashboard') {
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Image</label>
-                <input type="text" name="image" placeholder="image.jpg" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                <input type="file" name="image" accept="image/*" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <p class="text-xs text-gray-500 mt-1">Upload a JPG, PNG, or GIF image</p>
             </div>
             <button type="submit" name="add_item" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-700">Add Item</button>
         </form>
@@ -472,8 +526,9 @@ if ($tab == 'dashboard') {
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form method="POST" id="edit-item-form">
+        <form method="POST" enctype="multipart/form-data" id="edit-item-form">
             <input type="hidden" name="id" id="edit-id">
+            <input type="hidden" name="current_image" id="edit-current-image">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Name</label>
                 <input type="text" name="name" id="edit-name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
@@ -496,7 +551,11 @@ if ($tab == 'dashboard') {
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Image</label>
-                <input type="text" name="image" id="edit-image" placeholder="image.jpg" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                <div class="mt-1">
+                    <img id="edit-image-preview" src="" alt="Current image" class="w-20 h-20 object-cover rounded border mb-2" style="display: none;">
+                    <input type="file" name="image" accept="image/*" class="block w-full border-gray-300 rounded-md shadow-sm">
+                    <p class="text-xs text-gray-500 mt-1">Leave empty to keep current image, or upload a new JPG, PNG, or GIF image</p>
+                </div>
             </div>
             <button type="submit" name="edit_item" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-700">Update Item</button>
         </form>
@@ -552,7 +611,17 @@ function openEditModal(id, name, description, price, category_id, image) {
     document.getElementById('edit-description').value = description;
     document.getElementById('edit-price').value = price;
     document.getElementById('edit-category').value = category_id;
-    document.getElementById('edit-image').value = image;
+    document.getElementById('edit-current-image').value = image;
+
+    // Show current image preview
+    const preview = document.getElementById('edit-image-preview');
+    if (image) {
+        preview.src = 'assets/' + image;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+
     document.getElementById('edit-item-modal').classList.remove('hidden');
 }
 </script>
