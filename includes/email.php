@@ -5,9 +5,9 @@ $env = parse_ini_file(__DIR__ . '/../.env');
 // Email configuration from environment
 define('SMTP_HOST', $env['SMTP_HOST'] ?? 'smtp.gmail.com');
 define('SMTP_PORT', $env['SMTP_PORT'] ?? 587);
-define('SMTP_USERNAME', $env['SMTP_USERNAME'] ?? 'maildiaryapp@gmail.com');
-define('SMTP_PASSWORD', $env['SMTP_PASSWORD'] ?? 'pqbw zeag upef fntd');
-define('FROM_EMAIL', $env['FROM_EMAIL'] ?? 'maildiaryapp@gmail.com');
+define('SMTP_USERNAME', $env['SMTP_USERNAME'] ?? '');
+define('SMTP_PASSWORD', $env['SMTP_PASSWORD'] ?? '');
+define('FROM_EMAIL', $env['FROM_EMAIL'] ?? '');
 define('FROM_NAME', $env['FROM_NAME'] ?? 'Jollibee');
 
 // Function to send OTP email
