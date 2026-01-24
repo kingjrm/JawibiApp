@@ -23,11 +23,12 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            animation: fadeOut 3s ease-in-out 1s forwards;
+            animation: intro 2s ease-in-out forwards;
         }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
+        @keyframes intro {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(1); visibility: hidden; }
         }
     </style>
 </head>
