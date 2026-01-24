@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 require_once 'config/db.php';
 // Suppress warnings for production
 error_reporting(E_ERROR | E_PARSE);

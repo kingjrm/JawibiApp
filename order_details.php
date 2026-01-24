@@ -13,9 +13,8 @@ $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 // Fetch order details
 $stmt = $pdo->prepare("
-    SELECT o.*, ua.address_line1, ua.address_line2, ua.city, ua.state, ua.zip_code
+    SELECT o.*
     FROM orders o
-    LEFT JOIN user_addresses ua ON o.delivery_address_id = ua.id
     WHERE o.id = ? AND o.user_id = ?
 ");
 $stmt->execute([$order_id, $user_id]);
