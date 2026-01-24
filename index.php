@@ -52,9 +52,8 @@
                     <a href="index.php" class="text-red-600 font-semibold hover:text-red-800 transition">Home</a>
                     <a href="menu.php" class="text-red-600 font-semibold hover:text-red-800 transition">Menu</a>
                     <a href="#deals" class="text-red-600 font-semibold hover:text-red-800 transition">Deals</a>
-                    <a href="#stores" class="text-red-600 font-semibold hover:text-red-800 transition">Stores</a>
-                    <a href="login.php" class="text-red-600 font-semibold hover:text-red-800 transition">Login</a>
-                    <a href="register.php" class="text-red-600 font-semibold hover:text-red-800 transition">Register</a>
+                    <a href="stores.php" class="text-red-600 font-semibold hover:text-red-800 transition">Stores</a>
+                    <a href="login.php" class="text-red-600 font-semibold hover:text-red-800 transition">Sign In</a>
                 </nav>
             </div>
         </div>

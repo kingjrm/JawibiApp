@@ -63,7 +63,7 @@ if ($userLat && $userLng) {
                     <h3 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($store['name']); ?></h3>
                     <p class="text-gray-600 mb-2"><?php echo htmlspecialchars($store['address']); ?></p>
                     <p class="text-red-600 font-semibold"><?php echo $store['distance']; ?> km away</p>
-                    <a href="#" class="mt-4 inline-block bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition">
+                    <a href="https://www.google.com/maps/dir/<?php echo $userLat; ?>,<?php echo $userLng; ?>/<?php echo $store['lat']; ?>,<?php echo $store['lng']; ?>" target="_blank" class="mt-4 inline-block bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition">
                         Get Directions
                     </a>
                 </div>
