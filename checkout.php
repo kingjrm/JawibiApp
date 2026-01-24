@@ -43,14 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
         $_SESSION['user_id'],
         $total,
         $checkout['discount'],
-        $checkout['final_amount'],
-        'pending'
+        $checkout['final_amount']
     ]);
     $order_id = $pdo->lastInsertId();
 
     foreach ($cart_items as $item) {
-        $stmt = $pdo->prepare("INSERT INTO order_items (order_id, item_id, quantity, price) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$order_id, $item['id'], $item['quantity'], $item['price']]);
+        $stmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$order_id, $item['id'], $item['quantity'], $item['price'], $item['price'] * $item['quantity']]);
     }
 
     // Award loyalty points
