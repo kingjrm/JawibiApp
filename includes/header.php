@@ -3,6 +3,14 @@ session_start();
 require_once 'config/db.php';
 // Suppress warnings for production
 error_reporting(E_ERROR | E_PARSE);
+
+// Auto logout after 5 minutes of inactivity
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 300)) {
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
 ?>
 <!DOCTYPE html>
 <html lang="en">
