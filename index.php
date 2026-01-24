@@ -128,6 +128,11 @@
         // Simple JS for animations or interactions if needed
         // For now, just the CSS animations
 
+        // Hide splash after logo animation ends
+        document.querySelector('.splash img').addEventListener('animationend', function() {
+            document.querySelector('.splash').style.display = 'none';
+        });
+
         // Typing effect for the hero text
         const text = "Indulge in Jollibee favorites — Chickenjoy, Jolly Spaghetti, and more!";
         const typingText = document.getElementById('typing-text');
