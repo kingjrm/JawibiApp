@@ -25,7 +25,7 @@
             z-index: 9999;
         }
         .splash img {
-            animation: intro 2s ease-in-out forwards;
+            animation: intro 1s ease-in-out forwards;
         }
         @keyframes intro {
             0% { opacity: 0; transform: scale(0.8); }
@@ -39,7 +39,7 @@
     <div class="splash">
         <img src="https://1000logos.net/wp-content/uploads/2021/05/Jollibee-logo.png" alt="Jollibee Logo" class="h-32">
     </div>
-    <div class="main-content" style="opacity: 0; transition: opacity 1s ease-in;">
+    <div class="main-content" style="opacity: 0; transition: opacity 0.5s ease-in;">
     <!-- Navbar -->
     <header class="bg-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
