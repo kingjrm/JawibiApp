@@ -118,6 +118,14 @@
                     <p class="text-gray-600 mb-6">Quickly locate a Jollibee anywhere in the Philippines.</p>
                     <a href="stores.php" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-200 inline-block">Locate Store</a>
                 </div>
+                <div class="bg-white shadow-lg rounded-xl p-8 text-center max-w-sm transform hover:scale-105 hover:shadow-2xl transition duration-300 border border-green-100">
+                    <div class="w-24 h-24 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-4xl text-green-600"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-green-600">Sign In to Order</h3>
+                    <p class="text-gray-600 mb-6">Create an account or log in to place your order and enjoy exclusive deals.</p>
+                    <a href="login.php" class="bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 inline-block">Sign In</a>
+                </div>
             </div>
         </div>
     </section>
