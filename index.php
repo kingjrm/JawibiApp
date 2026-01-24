@@ -117,7 +117,7 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-4 text-yellow-600">Find a Jollibee Near You</h3>
                     <p class="text-gray-600 mb-6">Quickly locate a Jollibee anywhere in the Philippines.</p>
-                    <a href="search.php" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-200 inline-block">Locate Store</a>
+                    <a href="stores.php" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-200 inline-block">Locate Store</a>
                 </div>
             </div>
         </div>
