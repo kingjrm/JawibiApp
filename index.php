@@ -99,20 +99,25 @@
     </section>
 
     <!-- Info CTA -->
-    <section class="py-16 bg-red-50" id="menu">
+    <section class="py-16 bg-gradient-to-b from-red-50 to-white" id="menu">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Discover Jollibee</h2>
             <div class="flex flex-wrap justify-center gap-8">
-                <div class="bg-white shadow-lg rounded-lg p-8 text-center max-w-sm">
-                    <img src="https://cdn-icons-png.flaticon.com/512/877/877951.png" alt="Menu" class="w-12 mx-auto mb-4">
-                    <h2 class="text-2xl font-bold mb-4">Explore Our Menu</h2>
+                <div class="bg-white shadow-lg rounded-xl p-8 text-center max-w-sm transform hover:scale-105 hover:shadow-2xl transition duration-300 border border-red-100">
+                    <div class="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+                        <img src="assets/chickenjoy.jpg" alt="Chickenjoy" class="w-20 h-20 object-cover rounded-full">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-red-600">Explore Our Menu</h3>
                     <p class="text-gray-600 mb-6">From Chickenjoy to Jolly Spaghetti—see what's in store.</p>
-                    <a href="menu.php" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition">See Menu</a>
+                    <a href="menu.php" class="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 inline-block">See Menu</a>
                 </div>
-                <div class="bg-white shadow-lg rounded-lg p-8 text-center max-w-sm" id="stores">
-                    <img src="https://cdn-icons-png.flaticon.com/512/535/535239.png" alt="Store" class="w-12 mx-auto mb-4">
-                    <h2 class="text-2xl font-bold mb-4">Find a Jollibee Near You</h2>
+                <div class="bg-white shadow-lg rounded-xl p-8 text-center max-w-sm transform hover:scale-105 hover:shadow-2xl transition duration-300 border border-yellow-100" id="stores">
+                    <div class="w-24 h-24 mx-auto mb-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <img src="https://cdn-icons-png.flaticon.com/512/535/535239.png" alt="Store" class="w-12 h-12">
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-yellow-600">Find a Jollibee Near You</h3>
                     <p class="text-gray-600 mb-6">Quickly locate a Jollibee anywhere in the Philippines.</p>
-                    <a href="#stores" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-2 px-4 rounded transition">Locate Store</a>
+                    <a href="search.php" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-200 inline-block">Locate Store</a>
                 </div>
             </div>
         </div>
