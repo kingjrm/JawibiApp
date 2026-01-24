@@ -23,6 +23,8 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
+        }
+        .splash img {
             animation: intro 2s ease-in-out forwards;
         }
         @keyframes intro {
