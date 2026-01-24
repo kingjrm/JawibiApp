@@ -39,6 +39,7 @@
     <div class="splash">
         <img src="https://1000logos.net/wp-content/uploads/2021/05/Jollibee-logo.png" alt="Jollibee Logo" class="h-32">
     </div>
+    <div class="main-content" style="opacity: 0; transition: opacity 1s ease-in;">
     <!-- Navbar -->
     <header class="bg-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -123,6 +124,7 @@
             <p class="text-gray-600">&copy; 2025 Jollibee. All rights reserved.</p>
         </div>
     </footer>
+    </div>
 
     <script>
         // Simple JS for animations or interactions if needed
@@ -131,6 +133,7 @@
         // Hide splash after logo animation ends
         document.querySelector('.splash img').addEventListener('animationend', function() {
             document.querySelector('.splash').style.display = 'none';
+            document.querySelector('.main-content').style.opacity = '1';
         });
 
         // Typing effect for the hero text
