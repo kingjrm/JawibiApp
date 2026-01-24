@@ -43,7 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
         $_SESSION['user_id'],
         $total,
         $checkout['discount'],
-        $checkout['final_total']
+        $checkout['final_amount'],
+        'pending'
     ]);
     $order_id = $pdo->lastInsertId();
 
