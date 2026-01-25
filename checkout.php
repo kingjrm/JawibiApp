@@ -37,34 +37,38 @@ if (!empty($cart)) {
 // No address needed for POS
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
-    // Process order
-    $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, discount_amount, final_amount, status) VALUES (?, ?, ?, ?, 'pending')");
-    $stmt->execute([
-        $_SESSION['user_id'],
-        $total,
-        $checkout['discount'],
-        $checkout['final_amount']
-    ]);
-    $order_id = $pdo->lastInsertId();
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request';
+    } else {
+        // Process order
+        $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_amount, discount_amount, final_amount, status) VALUES (?, ?, ?, ?, 'pending')");
+        $stmt->execute([
+            $_SESSION['user_id'],
+            $total,
+            $checkout['discount'],
+            $checkout['final_amount']
+        ]);
+        $order_id = $pdo->lastInsertId();
 
-    foreach ($cart_items as $item) {
-        $stmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$order_id, $item['id'], $item['quantity'], $item['price'], $item['price'] * $item['quantity']]);
+        foreach ($cart_items as $item) {
+            $stmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$order_id, $item['id'], $item['quantity'], $item['price'], $item['price'] * $item['quantity']]);
+        }
+
+        // Award loyalty points
+        $points_earned = floor($checkout['final_amount'] / 10); // 1 point per ₱10
+        $stmt = $pdo->prepare("UPDATE users SET loyalty_points = loyalty_points + ? WHERE id = ?");
+        $stmt->execute([$points_earned, $_SESSION['user_id']]);
+
+        // Create notification
+        $stmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
+        $stmt->execute([$_SESSION['user_id'], 'Order Placed', 'Your order #' . $order_id . ' has been placed successfully!']);
+
+        unset($_SESSION['cart']);
+        unset($_SESSION['checkout']);
+        header('Location: profile.php?order=success&points=' . $points_earned);
+        exit;
     }
-
-    // Award loyalty points
-    $points_earned = floor($checkout['final_amount'] / 10); // 1 point per ₱10
-    $stmt = $pdo->prepare("UPDATE users SET loyalty_points = loyalty_points + ? WHERE id = ?");
-    $stmt->execute([$points_earned, $_SESSION['user_id']]);
-
-    // Create notification
-    $stmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
-    $stmt->execute([$_SESSION['user_id'], 'Order Placed', 'Your order #' . $order_id . ' has been placed successfully!']);
-
-    unset($_SESSION['cart']);
-    unset($_SESSION['checkout']);
-    header('Location: profile.php?order=success&points=' . $points_earned);
-    exit;
 }
 ?>
 
@@ -80,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
                         <div class="flex items-center">
                             <img src="assets/<?php echo $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="w-12 h-12 object-cover mr-4">
                             <div>
-                                <h3 class="font-semibold"><?php echo $item['name']; ?></h3>
+                                <h3 class="font-semibold"><?php echo h($item['name']); ?></h3>
                                 <p class="text-sm text-gray-600">Qty: <?php echo $item['quantity']; ?></p>
                             </div>
                         </div>
@@ -110,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_order'])) {
             </div>
 
             <form method="POST" class="mt-6">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <button type="submit" name="confirm_order" class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-700 font-semibold text-lg">Confirm Order</button>
             </form>
         </div>

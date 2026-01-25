@@ -17,22 +17,30 @@ $user = $stmt->fetch();
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['update_profile'])) {
-        $name = $_POST['name'];
-        $email = $_POST['email'];
-        $phone = $_POST['phone'];
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request';
+    } elseif (isset($_POST['update_profile'])) {
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $phone = trim($_POST['phone']);
 
-        $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
-        $stmt->execute([$name, $email, $phone, $user_id]);
-        $success = 'Profile updated successfully!';
-        $user['name'] = $name;
-        $user['email'] = $email;
-        $user['phone'] = $phone;
+        if (empty($name) || !validateEmail($email) || !preg_match('/^\+?[0-9\s\-\(\)]+$/', $phone)) {
+            $error = 'Invalid input data';
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $phone, $user_id]);
+            $success = 'Profile updated successfully!';
+            $user['name'] = $name;
+            $user['email'] = $email;
+            $user['phone'] = $phone;
+        }
     } elseif (isset($_POST['change_password'])) {
         $current_password = $_POST['current_password'];
         $new_password = $_POST['new_password'];
 
-        if (password_verify($current_password, $user['password'])) {
+        if (strlen($new_password) < 8) {
+            $error = 'New password must be at least 8 characters';
+        } elseif (password_verify($current_password, $user['password'])) {
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
             $stmt->execute([$hashed_password, $user_id]);
@@ -84,8 +92,8 @@ if ($tab == 'orders') {
                     <div class="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-user text-white text-2xl"></i>
                     </div>
-                    <h2 class="text-xl font-semibold"><?php echo $user['name']; ?></h2>
-                    <p class="text-gray-600"><?php echo $user['email']; ?></p>
+                    <h2 class="text-xl font-semibold"><?php echo h($user['name']); ?></h2>
+                    <p class="text-gray-600"><?php echo h($user['email']); ?></p>
                     <div class="mt-4 p-3 bg-yellow-100 rounded-lg">
                         <p class="text-sm text-yellow-800">Loyalty Points</p>
                         <p class="text-2xl font-bold text-yellow-600"><?php echo $user['loyalty_points']; ?></p>
@@ -135,7 +143,7 @@ if ($tab == 'orders') {
                             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
                                 Order placed successfully!
                                 <?php if (isset($_GET['points'])): ?>
-                                    You earned <?php echo $_GET['points']; ?> loyalty points!
+                                    You earned <?php echo h($_GET['points']); ?> loyalty points!
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
@@ -291,6 +299,7 @@ if ($tab == 'orders') {
                         </div>
                         <div class="p-6">
                             <form method="POST">
+                                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Name</label>
@@ -317,7 +326,7 @@ if ($tab == 'orders') {
                         </div>
                         <div class="p-6">
                             <form method="POST">
-                                <div class="mb-4">
+                                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                     <label class="block text-sm font-medium text-gray-700">Current Password</label>
                                     <input type="password" name="current_password" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
                                 </div>
@@ -345,7 +354,7 @@ if ($tab == 'orders') {
             </button>
         </div>
         <form method="POST">
-            <div class="mb-4">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <label class="block text-sm font-medium text-gray-700">Address Type</label>
                 <select name="address_type" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
                     <option value="home">Home</option>

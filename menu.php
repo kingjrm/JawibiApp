@@ -3,50 +3,63 @@ $title = 'Menu - Jollibee';
 include 'includes/header.php';
 
 // Handle add to cart (only for logged-in users)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart']) && isset($_SESSION['user_id'])) {
-    $item_id = $_POST['item_id'];
-    $quantity = $_POST['quantity'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request';
+    } elseif (isset($_POST['add_to_cart']) && isset($_SESSION['user_id'])) {
+        $item_id = validateInt($_POST['item_id']);
+        $quantity = validateInt($_POST['quantity']);
 
-    if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = [];
+        if (!$item_id || !$quantity || $quantity < 1) {
+            $error = 'Invalid item or quantity';
+        } else {
+            if (!isset($_SESSION['cart'])) {
+                $_SESSION['cart'] = [];
+            }
+
+            if (isset($_SESSION['cart'][$item_id])) {
+                $_SESSION['cart'][$item_id] += $quantity;
+            } else {
+                $_SESSION['cart'][$item_id] = $quantity;
+            }
+
+            $success = 'Item added to cart!';
+        }
+    } elseif (isset($_POST['toggle_favorite']) && isset($_SESSION['user_id'])) {
+        $item_id = validateInt($_POST['item_id']);
+
+        if (!$item_id) {
+            $error = 'Invalid item';
+        } else {
+            $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND menu_item_id = ?");
+            $stmt->execute([$_SESSION['user_id'], $item_id]);
+            $existing = $stmt->fetch();
+
+            if ($existing) {
+                $stmt = $pdo->prepare("DELETE FROM favorites WHERE id = ?");
+                $stmt->execute([$existing['id']]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO favorites (user_id, menu_item_id) VALUES (?, ?)");
+                $stmt->execute([$_SESSION['user_id'], $item_id]);
+            }
+            header('Location: menu.php');
+            exit;
+        }
+    } elseif (isset($_POST['submit_review']) && isset($_SESSION['user_id'])) {
+        $item_id = validateInt($_POST['item_id']);
+        $rating = validateInt($_POST['rating']);
+        $comment = trim($_POST['comment']);
+
+        if (!$item_id || !$rating || $rating < 1 || $rating > 5) {
+            $error = 'Invalid review data';
+        } elseif (strlen($comment) > 500) {
+            $error = 'Comment too long';
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO reviews (user_id, menu_item_id, rating, comment) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $item_id, $rating, $comment]);
+            $success = 'Review submitted successfully!';
+        }
     }
-
-    if (isset($_SESSION['cart'][$item_id])) {
-        $_SESSION['cart'][$item_id] += $quantity;
-    } else {
-        $_SESSION['cart'][$item_id] = $quantity;
-    }
-
-    $success = 'Item added to cart!';
-}
-
-// Handle toggle favorite (only for logged-in users)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['toggle_favorite']) && isset($_SESSION['user_id'])) {
-    $item_id = $_POST['item_id'];
-    $stmt = $pdo->prepare("SELECT id FROM favorites WHERE user_id = ? AND menu_item_id = ?");
-    $stmt->execute([$_SESSION['user_id'], $item_id]);
-    $existing = $stmt->fetch();
-
-    if ($existing) {
-        $stmt = $pdo->prepare("DELETE FROM favorites WHERE id = ?");
-        $stmt->execute([$existing['id']]);
-    } else {
-        $stmt = $pdo->prepare("INSERT INTO favorites (user_id, menu_item_id) VALUES (?, ?)");
-        $stmt->execute([$_SESSION['user_id'], $item_id]);
-    }
-    header('Location: menu.php');
-    exit;
-}
-
-// Handle review submission (only for logged-in users)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_review']) && isset($_SESSION['user_id'])) {
-    $item_id = $_POST['item_id'];
-    $rating = $_POST['rating'];
-    $comment = $_POST['comment'];
-
-    $stmt = $pdo->prepare("INSERT INTO reviews (user_id, menu_item_id, rating, comment) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$_SESSION['user_id'], $item_id, $rating, $comment]);
-    $success = 'Review submitted successfully!';
 }
 
 // Get categories
@@ -138,10 +151,10 @@ $menu_items = $stmt->fetchAll();
                             <img src="assets/<?php echo $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="w-full h-48 object-cover">
                             <div class="p-6">
                                 <div class="flex justify-between items-start mb-2">
-                                    <h3 class="text-xl font-semibold"><?php echo $item['name']; ?></h3>
-                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm"><?php echo $item['category_name']; ?></span>
+                                    <h3 class="text-xl font-semibold"><?php echo h($item['name']); ?></h3>
+                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm"><?php echo h($item['category_name']); ?></span>
                                 </div>
-                                <p class="text-gray-600 mb-4"><?php echo $item['description']; ?></p>
+                                <p class="text-gray-600 mb-4"><?php echo h($item['description']); ?></p>
 
                                 <!-- Rating -->
                                 <?php
@@ -171,12 +184,14 @@ $menu_items = $stmt->fetchAll();
                                 <div class="flex space-x-2 mb-4">
                                     <?php if (isset($_SESSION['user_id'])): ?>
                                         <form method="POST" class="flex-1">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                             <input type="hidden" name="add_to_cart" value="1">
                                             <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
                                             <input type="number" name="quantity" value="1" min="1" class="w-16 px-2 py-1 border rounded mr-2">
                                             <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Add to Cart</button>
                                         </form>
                                         <form method="POST">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                             <input type="hidden" name="toggle_favorite" value="1">
                                             <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
                                             <button type="submit" class="text-red-500 hover:text-red-700 p-2">
@@ -201,7 +216,7 @@ $menu_items = $stmt->fetchAll();
                                             <?php foreach ($recent_reviews as $review): ?>
                                                 <div class="bg-gray-50 p-2 rounded">
                                                     <div class="flex items-center mb-1">
-                                                        <span class="font-medium text-sm"><?php echo $review['user_name']; ?></span>
+                                                        <span class="font-medium text-sm"><?php echo h($review['user_name']); ?></span>
                                                         <div class="flex text-yellow-400 ml-2">
                                                             <?php for ($i = 1; $i <= 5; $i++): ?>
                                                                 <i class="fas fa-star text-xs <?php echo $i <= $review['rating'] ? 'text-yellow-400' : 'text-gray-300'; ?>"></i>
@@ -244,6 +259,7 @@ $menu_items = $stmt->fetchAll();
             </button>
         </div>
         <form method="POST" id="review-form">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             <input type="hidden" name="item_id" id="review-item-id">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>

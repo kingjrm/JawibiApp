@@ -3,20 +3,25 @@ $title = 'Login - Jollibee';
 include 'includes/header.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
-
-    if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-        header('Location: menu.php');
-        exit;
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request';
     } else {
-        $error = 'Invalid email or password';
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password'])) {
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+            header('Location: menu.php');
+            exit;
+        } else {
+            $error = 'Invalid email or password';
+        }
     }
 }
 ?>
@@ -33,13 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
                 <div class="flex items-center">
                     <i class="fas fa-exclamation-triangle mr-2"></i>
-                    <?php echo $error; ?>
+                    <?php echo h($error); ?>
                 </div>
             </div>
         <?php endif; ?>
 
         <div class="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100">
             <form method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-envelope mr-2 text-red-500"></i>Email Address

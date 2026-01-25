@@ -22,79 +22,60 @@ $tab = $_GET['tab'] ?? 'dashboard';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['add_item'])) {
-        $name = $_POST['name'];
-        $description = $_POST['description'];
-        $price = $_POST['price'];
-        $category_id = $_POST['category_id'];
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request';
+    } elseif (isset($_POST['add_item'])) {
+        $name = trim($_POST['name']);
+        $description = trim($_POST['description']);
+        $price = validateFloat($_POST['price']);
+        $category_id = validateInt($_POST['category_id']);
 
-        // Handle image upload
-        $image_path = '';
-        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-            $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-            $max_size = 5 * 1024 * 1024; // 5MB
-
-            if (in_array($_FILES['image']['type'], $allowed_types) && $_FILES['image']['size'] <= $max_size) {
-                $upload_dir = 'assets/';
-                $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                $new_filename = uniqid('item_') . '.' . $file_extension;
-                $upload_path = $upload_dir . $new_filename;
-
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                    $image_path = $new_filename;
-                } else {
-                    $error = 'Failed to upload image.';
-                }
-            } else {
-                $error = 'Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.';
-            }
+        if (empty($name) || !$price || !$category_id) {
+            $error = 'Invalid input data';
         } else {
-            $error = 'Please select an image to upload.';
-        }
+            // Handle image upload
+            $upload_result = secureFileUpload($_FILES['image'] ?? null);
+            if (!$upload_result['success']) {
+                $error = $upload_result['error'];
+            } else {
+                $image_path = $upload_result['filename'];
 
-        if (empty($error) && !empty($image_path)) {
-            $stmt = $pdo->prepare("INSERT INTO menu_items (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $description, $price, $category_id, $image_path]);
-            $success = 'Item added successfully!';
+                $stmt = $pdo->prepare("INSERT INTO menu_items (name, description, price, category_id, image) VALUES (?, ?, ?, ?, ?)");
+                $stmt->execute([$name, $description, $price, $category_id, $image_path]);
+                $success = 'Item added successfully!';
+            }
         }
     } elseif (isset($_POST['edit_item'])) {
-        $id = $_POST['id'];
-        $name = $_POST['name'];
-        $description = $_POST['description'];
-        $price = $_POST['price'];
-        $category_id = $_POST['category_id'];
+        $id = validateInt($_POST['id']);
+        $name = trim($_POST['name']);
+        $description = trim($_POST['description']);
+        $price = validateFloat($_POST['price']);
+        $category_id = validateInt($_POST['category_id']);
 
-        // Handle image upload (optional for editing)
-        $image_path = $_POST['current_image']; // Keep existing image by default
+        if (!$id || empty($name) || !$price || !$category_id) {
+            $error = 'Invalid input data';
+        } else {
+            // Handle image upload (optional for editing)
+            $image_path = $_POST['current_image']; // Keep existing image by default
 
-        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-            $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-            $max_size = 5 * 1024 * 1024; // 5MB
-
-            if (in_array($_FILES['image']['type'], $allowed_types) && $_FILES['image']['size'] <= $max_size) {
-                $upload_dir = 'assets/';
-                $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                $new_filename = uniqid('item_') . '.' . $file_extension;
-                $upload_path = $upload_dir . $new_filename;
-
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $upload_path)) {
-                    $image_path = $new_filename;
-                    // Optionally delete old image file
-                    if (!empty($_POST['current_image']) && file_exists($upload_dir . $_POST['current_image'])) {
-                        unlink($upload_dir . $_POST['current_image']);
-                    }
+            if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+                $upload_result = secureFileUpload($_FILES['image']);
+                if (!$upload_result['success']) {
+                    $error = $upload_result['error'];
                 } else {
-                    $error = 'Failed to upload image.';
+                    $image_path = $upload_result['filename'];
+                    // Delete old image
+                    if (!empty($_POST['current_image']) && file_exists('assets/' . $_POST['current_image'])) {
+                        unlink('assets/' . $_POST['current_image']);
+                    }
                 }
-            } else {
-                $error = 'Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.';
             }
-        }
 
-        if (empty($error)) {
-            $stmt = $pdo->prepare("UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ? WHERE id = ?");
-            $stmt->execute([$name, $description, $price, $category_id, $image_path, $id]);
-            $success = 'Item updated successfully!';
+            if (empty($error)) {
+                $stmt = $pdo->prepare("UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ? WHERE id = ?");
+                $stmt->execute([$name, $description, $price, $category_id, $image_path, $id]);
+                $success = 'Item updated successfully!';
+            }
         }
     } elseif (isset($_POST['delete_item'])) {
         $id = $_POST['id'];
@@ -341,6 +322,7 @@ if ($tab == 'dashboard') {
                                             <td class="px-4 py-2">₱<?php echo $order['final_amount']; ?></td>
                                             <td class="px-4 py-2">
                                                 <form method="POST" class="inline">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                                     <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
                                                     <select name="status" onchange="this.form.submit()" class="border rounded px-2 py-1">
                                                         <option value="pending" <?php echo $order['status'] == 'pending' ? 'selected' : ''; ?>>Pending</option>
@@ -389,6 +371,7 @@ if ($tab == 'dashboard') {
                                             <div class="flex space-x-2">
                                                 <button onclick="openEditModal(<?php echo $item['id']; ?>, '<?php echo addslashes($item['name']); ?>', '<?php echo addslashes($item['description']); ?>', <?php echo $item['price']; ?>, <?php echo $item['category_id']; ?>, '<?php echo $item['image']; ?>')" class="text-blue-500 hover:text-blue-700"><i class="fas fa-edit"></i></button>
                                                 <form method="POST" class="inline" onsubmit="return confirm('Delete this item?')">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                                     <input type="hidden" name="id" value="<?php echo $item['id']; ?>">
                                                     <input type="hidden" name="delete_item" value="1">
                                                     <button type="submit" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
@@ -487,6 +470,7 @@ if ($tab == 'dashboard') {
             </button>
         </div>
         <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Name</label>
                 <input type="text" name="name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
@@ -527,6 +511,7 @@ if ($tab == 'dashboard') {
             </button>
         </div>
         <form method="POST" enctype="multipart/form-data" id="edit-item-form">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             <input type="hidden" name="id" id="edit-id">
             <input type="hidden" name="current_image" id="edit-current-image">
             <div class="mb-4">
@@ -572,6 +557,7 @@ if ($tab == 'dashboard') {
             </button>
         </div>
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Code</label>
                 <input type="text" name="code" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>

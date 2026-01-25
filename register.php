@@ -7,36 +7,49 @@ $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['send_otp'])) {
-        $first_name = $_POST['first_name'];
-        $last_name = $_POST['last_name'];
-        $email = $_POST['email'];
-        $phone = $_POST['phone'];
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request';
+    } elseif (isset($_POST['send_otp'])) {
+        $first_name = trim($_POST['first_name']);
+        $last_name = trim($_POST['last_name']);
+        $email = trim($_POST['email']);
+        $phone = trim($_POST['phone']);
         $password = $_POST['password'];
 
-        // Check if email already exists
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
-            $error = 'Email already registered. Please use a different email.';
+        // Validation
+        if (empty($first_name) || empty($last_name) || empty($email) || empty($phone) || empty($password)) {
+            $error = 'All fields are required';
+        } elseif (!validateEmail($email)) {
+            $error = 'Invalid email format';
+        } elseif (strlen($password) < 8) {
+            $error = 'Password must be at least 8 characters';
+        } elseif (!preg_match('/^\+?[0-9\s\-\(\)]+$/', $phone)) {
+            $error = 'Invalid phone number';
         } else {
-            // Generate and send OTP
-            $otp = generateOTP();
-            // Always store registration data in session for testing
-            $_SESSION['reg_data'] = [
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'email' => $email,
-                'phone' => $phone,
-                'password' => password_hash($password, PASSWORD_DEFAULT),
-                'otp' => $otp,
-                'timestamp' => time()
-            ];
-
-            if (sendOTPEmail($email, $otp, 'registration')) {
-                $message = 'OTP sent to your email. Please check your inbox and enter the code below.';
+            // Check if email already exists
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                $error = 'Email already registered. Please use a different email.';
             } else {
-                $message = 'There was an issue sending the email. Please try again or contact support.';
+                // Generate and send OTP
+                $otp = generateOTP();
+                // Always store registration data in session for testing
+                $_SESSION['reg_data'] = [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'password' => password_hash($password, PASSWORD_DEFAULT),
+                    'otp' => $otp,
+                    'timestamp' => time()
+                ];
+
+                if (sendOTPEmail($email, $otp, 'registration')) {
+                    $message = 'OTP sent to your email. Please check your inbox and enter the code below.';
+                } else {
+                    $message = 'There was an issue sending the email. Please try again or contact support.';
+                }
             }
         }
     } elseif (isset($_POST['resend_otp'])) {
@@ -118,6 +131,7 @@ $show_otp_form = isset($_SESSION['reg_data']);
             <?php if ($show_otp_form): ?>
                 <!-- OTP Verification Form -->
                 <form method="POST" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                     <div class="text-center mb-6">
                         <i class="fas fa-envelope-open-text text-4xl text-red-500 mb-4"></i>
                         <h3 class="text-lg font-semibold text-gray-900">Verify Your Email</h3>
@@ -153,6 +167,7 @@ $show_otp_form = isset($_SESSION['reg_data']);
             <?php else: ?>
                 <!-- Registration Form -->
                 <form method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">

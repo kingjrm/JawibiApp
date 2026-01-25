@@ -4,7 +4,9 @@ include 'includes/header.php';
 include 'includes/email_new.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['send_reset_otp']) || isset($_POST['resend_reset_otp'])) {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request';
+    } elseif (isset($_POST['send_reset_otp']) || isset($_POST['resend_reset_otp'])) {
         $email = $_POST['email'];
 
         // Check if email exists
@@ -34,7 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $input_otp = $_POST['otp'];
             $new_password = $_POST['new_password'];
 
-            if (verifyOTP($input_otp, $_SESSION['reset_data']['otp'], $_SESSION['reset_data']['timestamp'])) {
+            if (strlen($new_password) < 8) {
+                $error = 'Password must be at least 8 characters';
+            } elseif (verifyOTP($input_otp, $_SESSION['reset_data']['otp'], $_SESSION['reset_data']['timestamp'])) {
                 // OTP verified, update password
                 $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
                 $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
@@ -70,6 +74,7 @@ $show_reset_form = isset($_SESSION['reset_data']);
             <?php if ($show_reset_form): ?>
                 <!-- OTP Verification Form -->
                 <form method="POST" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                     <div class="text-center mb-6">
                         <i class="fas fa-key text-4xl text-red-500 mb-4"></i>
                         <h3 class="text-lg font-semibold text-gray-900">Enter Reset Code</h3>
@@ -114,6 +119,7 @@ $show_reset_form = isset($_SESSION['reset_data']);
             <?php else: ?>
                 <!-- Email Form -->
                 <form method="POST" class="space-y-6">
+                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-envelope mr-2 text-red-500"></i>Email Address

@@ -55,12 +55,18 @@ if (!empty($promo_code)) {
 
 // Handle update cart
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['update_cart'])) {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $promo_error = 'Invalid request';
+    } elseif (isset($_POST['update_cart'])) {
         foreach ($_POST['quantities'] as $id => $qty) {
-            if ($qty > 0) {
-                $_SESSION['cart'][$id] = $qty;
-            } else {
-                unset($_SESSION['cart'][$id]);
+            $id = validateInt($id);
+            $qty = validateInt($qty);
+            if ($id && $qty >= 0) {
+                if ($qty > 0) {
+                    $_SESSION['cart'][$id] = $qty;
+                } else {
+                    unset($_SESSION['cart'][$id]);
+                }
             }
         }
         header('Location: cart.php');
@@ -129,6 +135,7 @@ $addresses = $stmt->fetchAll();
                 <div class="bg-white shadow-lg rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold mb-4">Promo Code</h2>
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                         <input type="text" name="promo_code" placeholder="Enter promo code" class="w-full px-3 py-2 border rounded mb-2">
                         <button type="submit" name="apply_promo" class="w-full bg-yellow-500 text-white py-2 rounded hover:bg-yellow-700">Apply</button>
                     </form>
@@ -159,13 +166,16 @@ $addresses = $stmt->fetchAll();
                     </div>
 
                     <form method="POST" id="checkout-form">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                         <button type="submit" name="checkout" class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-700 font-semibold text-lg">Checkout</button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <form id="cart-form" method="POST" class="hidden"></form>
+        <form id="cart-form" method="POST" class="hidden">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+        </form>
     <?php endif; ?>
 </div>
 
