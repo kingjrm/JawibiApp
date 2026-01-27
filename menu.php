@@ -102,7 +102,7 @@ $menu_items = $stmt->fetchAll();
                     <form method="GET">
                         <div class="relative">
                             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search menu..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
-                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400 icon-hover"></i>
                         </div>
                         <button type="submit" class="w-full mt-2 bg-red-500 text-white py-2 rounded hover:bg-red-700">Search</button>
                     </form>
@@ -169,7 +169,7 @@ $menu_items = $stmt->fetchAll();
                                 }
                                 ?>
                                 <div class="flex items-center mb-4">
-                                    <div class="flex text-yellow-400 mr-2">
+                                    <div class="flex mr-2">
                                         <?php for ($i = 1; $i <= 5; $i++): ?>
                                             <i class="fas fa-star <?php echo $i <= $avg_rating ? 'text-yellow-400' : 'text-gray-300'; ?>"></i>
                                         <?php endfor; ?>
@@ -194,8 +194,8 @@ $menu_items = $stmt->fetchAll();
                                             <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                             <input type="hidden" name="toggle_favorite" value="1">
                                             <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
-                                            <button type="submit" class="text-red-500 hover:text-red-700 p-2">
-                                                <i class="fas fa-heart"></i>
+                                            <button type="submit" class="text-red-500 hover:text-red-700 p-2 icon-hover transition-colors duration-200">
+                                                <i class="fas fa-heart text-lg"></i>
                                             </button>
                                         </form>
                                     <?php else: ?>
@@ -217,9 +217,9 @@ $menu_items = $stmt->fetchAll();
                                                 <div class="bg-gray-50 p-2 rounded">
                                                     <div class="flex items-center mb-1">
                                                         <span class="font-medium text-sm"><?php echo h($review['user_name']); ?></span>
-                                                        <div class="flex text-yellow-400 ml-2">
+                                                        <div class="flex ml-2">
                                                             <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                                <i class="fas fa-star text-xs <?php echo $i <= $review['rating'] ? 'text-yellow-400' : 'text-gray-300'; ?>"></i>
+                                                                <i class="fas fa-star <?php echo $i <= $review['rating'] ? 'text-yellow-400' : 'text-gray-300'; ?>"></i>
                                                             <?php endfor; ?>
                                                         </div>
                                                     </div>
@@ -267,7 +267,7 @@ $menu_items = $stmt->fetchAll();
                     <?php for ($i = 1; $i <= 5; $i++): ?>
                         <input type="radio" name="rating" value="<?php echo $i; ?>" id="star<?php echo $i; ?>" class="hidden">
                         <label for="star<?php echo $i; ?>" class="cursor-pointer">
-                            <i class="fas fa-star text-2xl text-gray-300 hover:text-yellow-400 star-rating"></i>
+                            <i class="fas fa-star text-2xl text-gray-300 hover:text-yellow-400 star-rating transition-colors duration-200"></i>
                         </label>
                     <?php endfor; ?>
                 </div>

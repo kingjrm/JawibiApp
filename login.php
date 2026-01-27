@@ -26,18 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<div class="min-h-screen bg-gradient-to-br from-red-50 to-yellow-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
+<div class="bg-gradient-to-br from-red-50 to-yellow-50">
+    <!-- Main content area - centered -->
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
         <div class="text-center">
             <img src="https://1000logos.net/wp-content/uploads/2021/05/Jollibee-logo.png" alt="Jollibee Logo" class="mx-auto h-16 w-auto mb-4">
             <h2 class="text-3xl font-extrabold text-gray-900">Welcome Back!</h2>
             <p class="mt-2 text-sm text-gray-600">Sign in to your Jollibee account</p>
-        </div>
-
         <?php if (isset($error)): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
                 <div class="flex items-center">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <i class="fas fa-exclamation-triangle mr-2 icon-hover" style="font-family: 'Font Awesome 6 Free', Arial, sans-serif; color: #dc2626;" title="Error"></i>
                     <?php echo h($error); ?>
                 </div>
             </div>
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-envelope mr-2 text-red-500"></i>Email Address
+                        <i class="fas fa-envelope mr-2 text-red-500 icon-hover" style="font-family: 'Font Awesome 6 Free', Arial, sans-serif;" title="Email"></i>Email Address
                     </label>
                     <input type="email" name="email" id="email" required
                            class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transition duration-200"
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-lock mr-2 text-red-500"></i>Password
+                        <i class="fas fa-lock mr-2 text-red-500 icon-hover" style="font-family: 'Font Awesome 6 Free', Arial, sans-serif;" title="Password"></i>Password
                     </label>
                     <input type="password" name="password" id="password" required
                            class="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transition duration-200"
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <button type="submit"
                             class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200 transform hover:scale-105">
                         <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                            <i class="fas fa-sign-in-alt text-red-500 group-hover:text-red-400"></i>
+                            <i class="fas fa-sign-in-alt text-red-500 group-hover:text-red-400 icon-hover" style="font-family: 'Font Awesome 6 Free', Arial, sans-serif;" title="Sign In"></i>
                         </span>
                         Sign In
                     </button>
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mt-6">
                     <a href="register.php"
                        class="w-full flex justify-center py-3 px-4 border border-red-300 rounded-lg shadow-sm bg-white text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200">
-                        <i class="fas fa-user-plus mr-2"></i>
+                        <i class="fas fa-user-plus mr-2 icon-hover" style="font-family: 'Font Awesome 6 Free', Arial, sans-serif;" title="Create Account"></i>
                         Create New Account
                     </a>
                 </div>
@@ -119,7 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </p>
         </div>
     </div>
-</div>
+    </div> <!-- Close the centered content container -->
+</div> <!-- Close the background container -->
 
 <!-- Terms of Service Modal -->
 <div id="terms-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
@@ -127,8 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="p-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-gray-900">Terms of Service</h2>
-                <button onclick="closeModal('terms-modal')" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times text-lg"></i>
+                <button onclick="closeModal('terms-modal')" class="text-gray-500 hover:text-gray-700 modal-close">
+                    <i class="fas fa-times text-lg" style="font-family: 'Font Awesome 6 Free', Arial, sans-serif;" title="Close"></i>
                 </button>
             </div>
             <div class="text-sm text-gray-700 space-y-3">
@@ -166,8 +167,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="p-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-gray-900">Privacy Policy</h2>
-                <button onclick="closeModal('privacy-modal')" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times text-lg"></i>
+                <button onclick="closeModal('privacy-modal')" class="text-gray-500 hover:text-gray-700 modal-close">
+                    <i class="fas fa-times text-lg" style="font-family: 'Font Awesome 6 Free', Arial, sans-serif;" title="Close"></i>
                 </button>
             </div>
             <div class="text-sm text-gray-700 space-y-3">
